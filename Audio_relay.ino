@@ -12,6 +12,7 @@ uint32_t sample_capture_timer;
 uint32_t timer_off; 
 uint32_t timer_on; 
 int on_delay = 200; // don't do anything for in milliseconds e.g. wait 2 seconds before turning on
+bool timer_on_flag;
 
 
 void setup() {
@@ -29,18 +30,13 @@ void loop() {
 
 }
 void do_something_with_signal() {
-  if (read_avg > sensitivity && millis() - timer_on > on_delay) { // do something if you see a signal over threshold, and timer delay
-    digitalWrite(LED, HIGH); 
+  if (read_avg > sensitivity) { // do something if you see a signal over threshold
+    if(millis() - timer_on > on_delay){ //delay doing something 
+      digitalWrite(LED, HIGH); 
     }
-  
-  if(read_avg < sensitivity){
-    digitalWrite (LED, LOW);
-    timer_on_flag = true; //enable on timer
-  }
-
-  if(timer_on_flag == true){
-    timer_on = millis(); // restarts timer for on delay 
-    timer_on_flag = false; // do not run this condition 
+  else
+    timer_on = millis(); //resets timer on 
+    digitalWrite(LED, LOW); //turns relay off
   }
 }
 
@@ -55,7 +51,7 @@ void sample_capture() {
   if (millis() - sample_capture_timer > sample_rate) { //controls the sample rate based off the timer
       read_count++;
       total_read = total_read + audio_read; // add samples together for averaging
-      off_timer = millis(); // reset off_timer if there is a signal
+     timer_off = millis(); // reset off_timer if there is a signal
       sample_capture_timer = millis(); //resets sample_capture timer to run this function again 
     }
   if (read_count > total_count) { //read_count increases and when it matches total_count, average the samples
@@ -64,6 +60,3 @@ void sample_capture() {
     total_read = 0; //reset 
   }
 }  
-
-
-
